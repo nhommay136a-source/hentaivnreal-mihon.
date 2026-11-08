@@ -38,9 +38,11 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Build APK
+      - name: Format and build APK
         working-directory: upstream
-        run: ./gradlew :src:vi:hentaivnreal:assembleRelease --no-daemon
+        run: |
+          ./gradlew :src:vi:hentaivnreal:spotlessApply --no-daemon
+          ./gradlew :src:vi:hentaivnreal:assembleRelease --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
