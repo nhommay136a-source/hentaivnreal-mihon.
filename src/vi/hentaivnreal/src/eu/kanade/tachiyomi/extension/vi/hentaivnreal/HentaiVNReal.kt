@@ -29,7 +29,7 @@ abstract class HentaiVNReal : KeiSource() {
             .addQueryParameter("s", query)
             .addQueryParameter("page", page.toString())
             .build()
-        return client.get(url).asJsoup().toMangasPage()
+        return client.get(url, Fetch.DOCUMENT).asJsoup().toMangasPage()
     }
 
     private fun Document.toMangasPage(): MangasPage {
@@ -56,7 +56,7 @@ abstract class HentaiVNReal : KeiSource() {
 
     override suspend fun getMangaByUrl(url: HttpUrl): SManga? {
         if (url.host != baseUrl.toHttpUrl().host) return null
-        val doc = client.get(url).asJsoup()
+        val doc = client.get(url, Fetch.DOCUMENT).asJsoup()
         val title = doc.selectFirst("h1")?.text()
             ?: doc.selectFirst("title")?.text()?.substringBefore(" - ") ?: return null
         return SManga.create().apply {
