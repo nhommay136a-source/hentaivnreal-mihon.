@@ -8,6 +8,7 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import keiyoushi.annotation.Source
 import keiyoushi.network.Fetch
+import keiyoushi.network.asJsoup
 import keiyoushi.network.get
 import keiyoushi.source.KeiSource
 import okhttp3.HttpUrl
@@ -18,7 +19,7 @@ import org.jsoup.nodes.Document
 abstract class HentaiVNReal : KeiSource() {
     override suspend fun getPopularManga(page: Int): MangasPage {
         val url = if (page == 1) baseUrl else "$baseUrl/?page=$page"
-        return client.get(url, Fetch.DOCUMENT).asJsoup().toMangasPage()
+        return client.get(url, fetch = Fetch.DOCUMENT).asJsoup().toMangasPage()
     }
 
     override suspend fun getLatestUpdates(page: Int): MangasPage =
