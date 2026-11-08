@@ -7,6 +7,7 @@ import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import keiyoushi.annotation.Source
+import keiyoushi.network.Fetch
 import keiyoushi.network.get
 import keiyoushi.source.KeiSource
 import okhttp3.HttpUrl
@@ -17,11 +18,11 @@ import org.jsoup.nodes.Document
 abstract class HentaiVNReal : KeiSource() {
     override suspend fun getPopularManga(page: Int): MangasPage {
         val url = if (page == 1) baseUrl else "$baseUrl/?page=$page"
-        return client.get(url).asJsoup().toMangasPage()
+        return client.get(url, Fetch.DOCUMENT).asJsoup().toMangasPage()
     }
 
     override suspend fun getLatestUpdates(page: Int): MangasPage =
-        client.get("$baseUrl/?order=update&page=$page").asJsoup().toMangasPage()
+        client.get("$baseUrl/?order=update&page=$page", Fetch.DOCUMENT).asJsoup().toMangasPage()
 
     override suspend fun getSearchMangaList(page: Int, query: String, filters: FilterList): MangasPage {
         val url = "$baseUrl/".toHttpUrl().newBuilder()
@@ -75,7 +76,7 @@ abstract class HentaiVNReal : KeiSource() {
     override suspend fun fetchMangaUpdate(
         manga: SManga, chapters: List<SChapter>, fetchDetails: Boolean, fetchChapters: Boolean,
     ): SMangaUpdate {
-        val doc = client.get(getMangaUrl(manga)).asJsoup()
+        val doc = client.get(getMangaUrl(manga), Fetch.DOCUMENT).asJsoup()
         val updated = manga.apply {
             doc.selectFirst("h1")?.text()?.let { title = it }
             doc.selectFirst("meta[property=og:image]")?.attr("content")
@@ -103,7 +104,7 @@ abstract class HentaiVNReal : KeiSource() {
     }
 
     override suspend fun getPageList(chapter: SChapter): List<Page> {
-        val doc = client.get(getChapterUrl(chapter)).asJsoup()
+        val doc = client.get(getChapterUrl(chapter), Fetch.DOCUMENT).asJsoup()
         val images = doc.select(".reading-content img, .chapter-content img, .reader img, #chapter-content img, article img")
             .mapNotNull { img ->
                 img.absUrl("data-src").ifBlank {
