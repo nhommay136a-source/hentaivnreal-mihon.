@@ -116,6 +116,10 @@ abstract class HentaiVNReal : KeiSource() {
         return images.mapIndexed { i, image -> Page(i, chapter.url, image) }
     }
 
-    override fun getMangaUrl(manga: SManga): String = manga.url
-    override fun getChapterUrl(chapter: SChapter): String = chapter.url
+    // Mihon stores source URLs without the domain. OkHttp requires an absolute URL.
+    private fun absoluteUrl(url: String): String =
+        baseUrl.toHttpUrl().resolve(url)?.toString() ?: url
+
+    override fun getMangaUrl(manga: SManga): String = absoluteUrl(manga.url)
+    override fun getChapterUrl(chapter: SChapter): String = absoluteUrl(chapter.url)
 }
