@@ -8,7 +8,7 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import keiyoushi.annotation.Source
 import keiyoushi.network.Fetch
-import keiyoushi.network.asJsoup
+import keiyoushi.utils.asJsoup
 import keiyoushi.network.get
 import keiyoushi.source.KeiSource
 import okhttp3.HttpUrl
