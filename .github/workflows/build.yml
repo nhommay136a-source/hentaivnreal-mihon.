@@ -1,0 +1,50 @@
+name: Build HentaiVNReal extension
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - ".github/workflows/build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Keiyoushi build system
+        uses: actions/checkout@v4
+        with:
+          repository: keiyoushi/extensions-source
+          ref: main
+          path: upstream
+
+      - name: Checkout this extension
+        uses: actions/checkout@v4
+        with:
+          path: extension
+
+      - name: Copy extension module into build system
+        run: |
+          mkdir -p upstream/src/vi
+          cp -R extension/src/vi/hentaivnreal upstream/src/vi/
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build APK
+        working-directory: upstream
+        run: ./gradlew :src:vi:hentaivnreal:assembleRelease --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: hentaivnreal-mihon-apk
+          path: upstream/src/vi/hentaivnreal/build/outputs/apk/release/*.apk
+          if-no-files-found: error
