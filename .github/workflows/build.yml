@@ -9,7 +9,7 @@ on:
       - ".github/workflows/build.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -56,6 +56,24 @@ jobs:
             grep -E '(^e: |\\.kt:[0-9]+:[0-9]+:|Unresolved reference|overrides nothing|Type mismatch|Compilation error|What went wrong)' build.log | tail -n 100 || tail -n 100 build.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Save failed build log to repository
+        if: failure()
+        working-directory: extension
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p diagnostics
+          if [ -f ../upstream/build.log ]; then
+            cp ../upstream/build.log diagnostics/latest-build.log
+          else
+            echo "Build log was not created." > diagnostics/latest-build.log
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add diagnostics/latest-build.log
+          git commit -m "Save latest failed build diagnostics" || exit 0
+          git push
 
       - name: Upload build log
         if: always()
