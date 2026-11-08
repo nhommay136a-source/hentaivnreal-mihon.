@@ -40,11 +40,33 @@ jobs:
 
       - name: Format and build APK
         working-directory: upstream
+        shell: bash
         run: |
-          ./gradlew :src:vi:hentaivnreal:spotlessApply --no-daemon
-          ./gradlew :src:vi:hentaivnreal:assembleRelease --no-daemon
+          set -o pipefail
+          ./gradlew :src:vi:hentaivnreal:spotlessApply --no-daemon 2>&1 | tee build.log
+          ./gradlew :src:vi:hentaivnreal:assembleRelease --no-daemon --stacktrace --info 2>&1 | tee -a build.log
+
+      - name: Print Kotlin compiler diagnostics
+        if: failure()
+        working-directory: upstream
+        run: |
+          {
+            echo "## Kotlin/build diagnostics"
+            echo '```text'
+            grep -E '(^e: |\\.kt:[0-9]+:[0-9]+:|Unresolved reference|overrides nothing|Type mismatch|Compilation error|What went wrong)' build.log | tail -n 100 || tail -n 100 build.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hentaivnreal-build-log
+          path: upstream/build.log
+          if-no-files-found: ignore
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: hentaivnreal-mihon-apk
