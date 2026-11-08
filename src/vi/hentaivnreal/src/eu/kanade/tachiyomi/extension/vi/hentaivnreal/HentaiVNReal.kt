@@ -23,14 +23,14 @@ abstract class HentaiVNReal : KeiSource() {
     }
 
     override suspend fun getLatestUpdates(page: Int): MangasPage =
-        client.get("$baseUrl/?order=update&page=$page", Fetch.DOCUMENT).asJsoup().toMangasPage()
+        client.get("$baseUrl/?order=update&page=$page", fetch = Fetch.DOCUMENT).asJsoup().toMangasPage()
 
     override suspend fun getSearchMangaList(page: Int, query: String, filters: FilterList): MangasPage {
         val url = "$baseUrl/".toHttpUrl().newBuilder()
             .addQueryParameter("s", query)
             .addQueryParameter("page", page.toString())
             .build()
-        return client.get(url, Fetch.DOCUMENT).asJsoup().toMangasPage()
+        return client.get(url, fetch = Fetch.DOCUMENT).asJsoup().toMangasPage()
     }
 
     private fun Document.toMangasPage(): MangasPage {
@@ -57,7 +57,7 @@ abstract class HentaiVNReal : KeiSource() {
 
     override suspend fun getMangaByUrl(url: HttpUrl): SManga? {
         if (url.host != baseUrl.toHttpUrl().host) return null
-        val doc = client.get(url, Fetch.DOCUMENT).asJsoup()
+        val doc = client.get(url, fetch = Fetch.DOCUMENT).asJsoup()
         val title = doc.selectFirst("h1")?.text()
             ?: doc.selectFirst("title")?.text()?.substringBefore(" - ") ?: return null
         return SManga.create().apply {
@@ -77,7 +77,7 @@ abstract class HentaiVNReal : KeiSource() {
     override suspend fun fetchMangaUpdate(
         manga: SManga, chapters: List<SChapter>, fetchDetails: Boolean, fetchChapters: Boolean,
     ): SMangaUpdate {
-        val doc = client.get(getMangaUrl(manga), Fetch.DOCUMENT).asJsoup()
+        val doc = client.get(getMangaUrl(manga), fetch = Fetch.DOCUMENT).asJsoup()
         val updated = manga.apply {
             doc.selectFirst("h1")?.text()?.let { title = it }
             doc.selectFirst("meta[property=og:image]")?.attr("content")
@@ -105,7 +105,7 @@ abstract class HentaiVNReal : KeiSource() {
     }
 
     override suspend fun getPageList(chapter: SChapter): List<Page> {
-        val doc = client.get(getChapterUrl(chapter), Fetch.DOCUMENT).asJsoup()
+        val doc = client.get(getChapterUrl(chapter), fetch = Fetch.DOCUMENT).asJsoup()
         val images = doc.select(".reading-content img, .chapter-content img, .reader img, #chapter-content img, article img")
             .mapNotNull { img ->
                 img.absUrl("data-src").ifBlank {
